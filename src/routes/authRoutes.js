@@ -17,9 +17,9 @@ router.post(
   register
 );
 
-router.post("/logout", protect, logoutUser);
-router.get("/me", protect, getCurrentUser);
 router.get("/:id", protect, getUserById);
+router.get("/me", protect, getCurrentUser);
+router.post("/logout", protect, logoutUser);
 
 router.post("/login", login);
 

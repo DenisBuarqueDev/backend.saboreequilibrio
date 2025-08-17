@@ -63,7 +63,8 @@ const login = async (req, res) => {
       return res.status(404).json({ message: "Usuário não encontrado!" });
 
     const isMatch = await data.comparePassword(password);
-    if (!isMatch) return res.status(401).json({ message: "Usuário não encontrado!" });
+    if (!isMatch)
+      return res.status(401).json({ message: "Usuário não encontrado!" });
 
     const token = generateToken(data._id);
 
@@ -117,8 +118,9 @@ const getUserById = async (req, res) => {
 
   try {
     const user = await User.findById(id).select("-password"); // Não retorna a senha
-    if (!user)
+    if (!user) {
       return res.status(404).json({ message: "Usuário não encontrado" });
+    }
 
     return res.status(200).json(user);
   } catch (error) {
