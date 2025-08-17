@@ -1,9 +1,9 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const path = require('path');
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const path = require("path");
 const cookieParser = require("cookie-parser");
-const connectDB = require('./src/config/db');
+const connectDB = require("./src/config/db");
 
 dotenv.config();
 connectDB();
@@ -12,37 +12,49 @@ const app = express();
 
 app.use(cookieParser());
 
+const allowedOrigins = [
+  "http://localhost:5173", // Dev
+  "https://saboreequilibrio.vercel.app", // Produção
+];
+
 // Aceita requisições do front-end (React)
-app.use(cors({
-  origin: ["https://saboreequilibrio.vercel.app"], 
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // se estiver usando cookies/sessão
+  })
+);
 app.use(express.json());
 
-const authRoutes = require('./src/routes/authRoutes');
-app.use('/api/auth', authRoutes);
+const authRoutes = require("./src/routes/authRoutes");
+app.use("/api/auth", authRoutes);
 
-const userRoutes = require('./src/routes/userRoutes');
-app.use('/api/users', userRoutes);
+const userRoutes = require("./src/routes/userRoutes");
+app.use("/api/users", userRoutes);
 
-const categoryRoutes = require('./src/routes/categoryRoutes');
-app.use('/api/categories', categoryRoutes);
+const categoryRoutes = require("./src/routes/categoryRoutes");
+app.use("/api/categories", categoryRoutes);
 
-const productRoutes = require('./src/routes/productRoutes');
-app.use('/api/products', productRoutes);
+const productRoutes = require("./src/routes/productRoutes");
+app.use("/api/products", productRoutes);
 
-const orderRoutes = require('./src/routes/orderRoutes');
-app.use('/api/orders', orderRoutes);
+const orderRoutes = require("./src/routes/orderRoutes");
+app.use("/api/orders", orderRoutes);
 
-const likeRoutes = require('./src/routes/likeRoutes');
-app.use('/api/likes', likeRoutes);
+const likeRoutes = require("./src/routes/likeRoutes");
+app.use("/api/likes", likeRoutes);
 
-const commentRoutes = require('./src/routes/commentRoutes');
-app.use('/api/comments', commentRoutes);
+const commentRoutes = require("./src/routes/commentRoutes");
+app.use("/api/comments", commentRoutes);
 
-const addressRoutes = require('./src/routes/addressRoutes');
-app.use('/api/addresses', addressRoutes);
+const addressRoutes = require("./src/routes/addressRoutes");
+app.use("/api/addresses", addressRoutes);
 
 const webhookRoutes = require("./src/routes/webhook");
 app.use("/api/webhook", webhookRoutes);
@@ -50,11 +62,11 @@ app.use("/api/webhook", webhookRoutes);
 const mercadoPagoRoutes = require("./src/routes/mercadoPago");
 app.use("/api/mercado-pago", mercadoPagoRoutes);
 
-app.use('/uploads', express.static(path.join(__dirname, 'src/uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "src/uploads")));
 
 // Test route
-app.get('/', (req, res) => {
-  res.send('API funcionando!');
+app.get("/", (req, res) => {
+  res.send("API funcionando!");
 });
 
 // Porta
