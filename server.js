@@ -14,7 +14,6 @@ app.use(cookieParser());
 
 // Aceita requisições do front-end (React)
 app.use(cors({
-  //origin: 'http://localhost:5173',
   origin: ["https://saboreequilibrio.vercel.app"], 
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true,
