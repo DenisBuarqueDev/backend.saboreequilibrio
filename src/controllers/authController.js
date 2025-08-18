@@ -34,9 +34,9 @@ const register = async (req, res) => {
     // 🧠 Definir o cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "development",
       sameSite: "None",
-      maxAge: 1000 * 60 * 60 * 24, // 1 dia, por exemplo
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
     });
 
     res.status(201).json({
@@ -70,9 +70,9 @@ const login = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "development",
       sameSite: "None",
-      maxAge: 1000 * 60 * 60 * 24, // 1 dia, por exemplo
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
     });
 
     res.status(200).json({
@@ -105,7 +105,7 @@ const getCurrentUser = async (req, res) => {
 const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "development",
     sameSite: "None",
   });
 

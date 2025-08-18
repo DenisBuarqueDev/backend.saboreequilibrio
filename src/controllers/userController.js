@@ -32,7 +32,7 @@ const createUser = async (req, res) => {
     // Evita duplicidade de email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: "E-mail já cadastrado" });
+      return res.status(400).json({ error: "E-mail já cadastrado!" });
     }
 
     const image = req.file ? validateImage(req.file) : null;
@@ -51,11 +51,11 @@ const createUser = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "Usuário criado com sucesso", data: newUser });
+      .json({ message: "Usuário criado com sucesso!", data: newUser });
   } catch (error) {
     res
       .status(500)
-      .json({ error: error.message || "Erro interno ao criar usuário" });
+      .json({ error: error.message || "Erro interno ao criar usuário!" });
   }
 };
 
@@ -75,11 +75,11 @@ const getUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado!" });
 
-    res.status(200).json({ message: "Usuário encontrado", data: user });
+    res.status(200).json({ message: "Usuário encontrado!", data: user });
   } catch (error) {
-    res.status(500).json({ error: "Erro interno ao buscar usuário" });
+    res.status(500).json({ error: "Erro interno ao buscar usuário!" });
   }
 };
 
@@ -132,12 +132,12 @@ const updateUser = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "Usuário atualizado com sucesso",
+      message: "Usuário atualizado com sucesso!",
       data: updated,
     });
   } catch (error) {
     res.status(500).json({
-      error: error.message || "Erro interno ao atualizar usuário",
+      error: error.message || "Erro interno ao atualizar usuário!",
     });
   }
 };

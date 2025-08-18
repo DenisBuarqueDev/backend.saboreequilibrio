@@ -29,7 +29,7 @@ router.post(
   createUser
 );
 
-router.get("/", protect, getUsers);
+router.get("/", getUsers);
 router.get("/:id", getUserById);
 router.put("/:id", upload.single("image"), updateUser);
 router.put("/photo/:id", upload.single("image"), updateUserImage);

@@ -15,23 +15,23 @@ const createProduct = async (req, res) => {
 
   // Validação explícita
   if (!title?.trim()) {
-    return res.status(400).json({ error: "O título é obrigatório" });
+    return res.status(400).json({ error: "O título é obrigatório!" });
   }
   if (!price || price <= 0) {
-    return res.status(400).json({ error: "O preço deve ser maior que zero" });
+    return res.status(400).json({ error: "O preço deve ser maior que zero!" });
   }
   if (!categoryId) {
-    return res.status(400).json({ error: "A categoria é obrigatória" });
+    return res.status(400).json({ error: "A categoria é obrigatória!" });
   }
   if (stock && stock < 0) {
-    return res.status(400).json({ error: "O estoque não pode ser negativo" });
+    return res.status(400).json({ error: "O estoque não pode ser negativo!" });
   }
 
   try {
     // Verificar categoria
     const category = await Category.findById(categoryId);
     if (!category) {
-      return res.status(404).json({ error: "Categoria não encontrada" });
+      return res.status(404).json({ error: "Categoria não encontrada!" });
     }
 
     // Validar imagem (se fornecida)
@@ -39,7 +39,7 @@ const createProduct = async (req, res) => {
     if (req.file) {
       const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
       if (!allowedTypes.includes(req.file.mimetype)) {
-        return res.status(400).json({ error: "Apenas imagens PNG, JPG ou JPEG são permitidas" });
+        return res.status(400).json({ error: "Apenas imagens PNG, JPG ou JPEG são permitidas!" });
       }
       image = `/uploads/${req.file.filename}`;
     }
@@ -55,12 +55,12 @@ const createProduct = async (req, res) => {
     });
 
     res.status(201).json({
-      message: "Produto criado com sucesso",
+      message: "Produto criado com sucesso!",
       data: product,
     });
   } catch (error) {
     console.error("Erro ao criar produto:", error.message);
-    res.status(500).json({ error: "Erro interno ao criar produto" });
+    res.status(500).json({ error: "Erro interno ao criar produto!" });
   }
 };
 
@@ -71,7 +71,7 @@ const getProducts = async (req, res) => {
       .populate("categoryId", "title")
       .sort({ createdAt: -1 });
     res.status(200).json({
-      message: "Produtos listados com sucesso",
+      message: "Produtos listados com sucesso!",
       data: products,
     });
   } catch (error) {
@@ -102,23 +102,23 @@ const getProductsByCategory = async (req, res) => {
   const { categoryId } = req.params;
 
   if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(400).json({ error: "ID de categoria inválido" });
+    return res.status(400).json({ error: "ID de categoria inválido!" });
   }
 
   try {
     const category = await Category.findById(categoryId);
     if (!category) {
-      return res.status(404).json({ error: "Categoria não encontrada" });
+      return res.status(404).json({ error: "Categoria não encontrada!" });
     }
 
     const products = await Product.find({ categoryId, active: true }).populate("categoryId", "title");
 
     if (products.length === 0) {
-      return res.status(404).json({ message: "Nenhum produto encontrado para essa categoria" });
+      return res.status(404).json({ error: "Nenhum produto encontrado para essa categoria!" });
     }
 
     res.status(200).json({
-      message: "Produtos encontrados",
+      message: "Produtos encontrados!",
       data: products,
     });
   } catch (error) {
@@ -133,16 +133,16 @@ const updateProduct = async (req, res) => {
 
   // Validações básicas
   if (!title?.trim()) {
-    return res.status(400).json({ error: "O título é obrigatório" });
+    return res.status(400).json({ error: "O título é obrigatório!" });
   }
   if (price && price <= 0) {
-    return res.status(400).json({ error: "O preço deve ser maior que zero" });
+    return res.status(400).json({ error: "O preço deve ser maior que zero!" });
   }
   if (categoryId && !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(400).json({ error: "ID de categoria inválido" });
+    return res.status(400).json({ error: "ID de categoria inválido!" });
   }
   if (stock && stock < 0) {
-    return res.status(400).json({ error: "O estoque não pode ser negativo" });
+    return res.status(400).json({ error: "O estoque não pode ser negativo!" });
   }
 
   try {
@@ -150,20 +150,20 @@ const updateProduct = async (req, res) => {
     if (categoryId) {
       const category = await Category.findById(categoryId);
       if (!category) {
-        return res.status(404).json({ error: "Categoria não encontrada" });
+        return res.status(404).json({ error: "Categoria não encontrada!" });
       }
     }
 
     const product = await Product.findById(req.params.id);
     if (!product) {
-      return res.status(404).json({ error: "Produto não encontrado" });
+      return res.status(404).json({ error: "Produto não encontrado!" });
     }
 
     let image;
     if (req.file) {
       const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
       if (!allowedTypes.includes(req.file.mimetype)) {
-        return res.status(400).json({ error: "Apenas imagens PNG, JPG ou JPEG são permitidas" });
+        return res.status(400).json({ error: "Apenas imagens PNG, JPG ou JPEG são permitidas!" });
       }
 
       // Excluir imagem anterior se existir
@@ -195,12 +195,12 @@ const updateProduct = async (req, res) => {
     ).populate("categoryId", "title");
 
     res.status(200).json({
-      message: "Produto atualizado com sucesso",
+      message: "Produto atualizado com sucesso!",
       data: updated,
     });
   } catch (error) {
     console.error("Erro ao atualizar produto:", error.message);
-    res.status(500).json({ error: "Erro interno ao atualizar produto" });
+    res.status(500).json({ error: "Erro interno ao atualizar produto!" });
   }
 };
 
@@ -209,7 +209,7 @@ const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) {
-      return res.status(404).json({ error: "Produto não encontrado" });
+      return res.status(404).json({ error: "Produto não encontrado!" });
     }
 
     // Excluir imagem, se existir
@@ -224,10 +224,10 @@ const deleteProduct = async (req, res) => {
 
     await Product.findByIdAndDelete(req.params.id);
 
-    res.status(200).json({ message: "Produto removido com sucesso" });
+    res.status(200).json({ message: "Produto removido com sucesso!" });
   } catch (error) {
     console.error("Erro ao remover produto:", error.message);
-    res.status(500).json({ error: "Erro interno ao remover produto" });
+    res.status(500).json({ error: "Erro interno ao remover produto!" });
   }
 };
 
@@ -237,7 +237,7 @@ const filterProductsByDescription = async (req, res) => {
     const { q, categoryId } = req.query;
 
     if (!q || q.trim() === "") {
-      return res.status(400).json({ error: "Parâmetro de busca 'q' é obrigatório" });
+      return res.status(400).json({ error: "Parâmetro de busca 'q' é obrigatório!" });
     }
 
     const query = {};
@@ -245,7 +245,7 @@ const filterProductsByDescription = async (req, res) => {
       query.categoryId = categoryId;
       const category = await Category.findById(categoryId);
       if (!category) {
-        return res.status(404).json({ error: "Categoria não encontrada" });
+        return res.status(404).json({ error: "Categoria não encontrada!" });
       }
     }
 
@@ -259,7 +259,7 @@ const filterProductsByDescription = async (req, res) => {
     const products = await Product.find(query).populate("categoryId", "title");
 
     if (products.length === 0) {
-      return res.status(404).json({ message: "Nenhum produto encontrado" });
+      return res.status(404).json({ message: "Nenhum produto encontrado!" });
     }
 
     res.status(200).json({
