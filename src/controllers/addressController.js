@@ -77,7 +77,6 @@ const getAddressByUserId = async (req, res) => {
     }
 
     // Opcional: Validar se userId é um ObjectId válido (se usar MongoDB)
-    const mongoose = require("mongoose");
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         error: "ID do usuário inválido.",
