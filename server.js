@@ -15,6 +15,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   "http://localhost:5173", // Dev
   "https://saboreequilibrio.vercel.app", // Produção
+  "https://dashboard-saboreequilibrio.vercel.app",
 ];
 
 // Aceita requisições do front-end (React)
