@@ -24,6 +24,7 @@ const createAddress = async (req, res) => {
     res.status(201).json(saved);
   } catch (err) {
     console.error("Erro ao criar endereço:", err);
+
     if (err.name === "ValidationError") {
       return res
         .status(400)
@@ -32,7 +33,9 @@ const createAddress = async (req, res) => {
     if (err.code === 11000) {
       return res.status(409).json({ error: "Endereço duplicado." });
     }
+
     res.status(500).json({ error: "Erro ao criar endereço." });
+    
   }
 };
 

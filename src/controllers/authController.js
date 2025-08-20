@@ -34,7 +34,7 @@ const register = async (req, res) => {
     // 🧠 Definir o cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "development",
+      secure: true,
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
     });
@@ -70,7 +70,7 @@ const login = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "development",
+      secure: true,
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
     });
@@ -105,7 +105,7 @@ const getCurrentUser = async (req, res) => {
 const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "development",
+    secure: true,
     sameSite: "None",
   });
 
