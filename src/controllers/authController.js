@@ -41,7 +41,7 @@ const register = async (req, res) => {
     });
 
     res.status(201).json({
-      message: "Cadastro realizado com sucesso! Redirecionando...",
+      message: "Cadastro realizado com sucesso!",
       user: {
         id: user._id,
         name: user.firstName,
@@ -50,7 +50,7 @@ const register = async (req, res) => {
       token: token,
     });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao registrar usuário" });
+    res.status(500).json({ error: "Erro ao cadastrar usuário" });
   }
 };
 
@@ -109,7 +109,7 @@ const logoutUser = (req, res) => {
     path: "/",
   });
 
-  return res.status(200).json({ message: "Logout realizado com sucesso" });
+  return res.status(200).json({ message: "Logout realizado com sucesso!" });
 };
 
 // Buscar dados do usuário pelo ID

@@ -19,7 +19,7 @@ router.post(
 
 router.get("/:id", protect, getUserById);
 router.get("/me", protect, getCurrentUser);
-router.post("/logout", logoutUser);
+router.post("/logout", protect, logoutUser);
 
 router.post("/login", login);
 
