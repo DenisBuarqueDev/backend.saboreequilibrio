@@ -37,6 +37,7 @@ const register = async (req, res) => {
       secure: true,
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+      path: "/",
     });
 
     res.status(201).json({
@@ -73,6 +74,7 @@ const login = async (req, res) => {
       secure: true,
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+      path: "/",
     });
 
     res.status(200).json({
@@ -104,6 +106,7 @@ const logoutUser = (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: "None",
+    path: "/",
   });
 
   return res.status(200).json({ message: "Logout realizado com sucesso" });
