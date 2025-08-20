@@ -92,12 +92,9 @@ const login = async (req, res) => {
 // 🙋 Obter usuário atual (usando middleware para decodificar token)
 const getCurrentUser = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Não autenticado" });
-    }
-    res.status(200).json(req.user);
+    return res.status(200).json({ user: req.user });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar usuário" });
+    return res.status(500).json({ message: "Erro ao buscar usuário" });
   }
 };
 
