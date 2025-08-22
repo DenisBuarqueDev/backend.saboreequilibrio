@@ -5,7 +5,7 @@ const { validationResult } = require("express-validator");
 const createCategory = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ error: errors.array() });
+    return res.status(400).json({ message: errors.array() });
   }
 
   const title = req.body.title?.trim();
@@ -13,7 +13,7 @@ const createCategory = async (req, res) => {
   if (!title) {
     return res
       .status(400)
-      .json({ error: "O título da categoria é obrigatório!" });
+      .json({ message: "O título da categoria é obrigatório!" });
   }
 
   try {
@@ -23,7 +23,7 @@ const createCategory = async (req, res) => {
     });
 
     if (exists) {
-      return res.status(400).json({ error: "Categoria já existe!" });
+      return res.status(400).json({ message: "Categoria já existe!" });
     }
 
     const category = await Category.create({ title });
@@ -31,9 +31,9 @@ const createCategory = async (req, res) => {
       message: "Categoria criada com sucesso!",
       data: category,
     });
-  } catch (error) {
-    console.error("Erro ao criar categoria:", error.message);
-    res.status(500).json({ error: "Erro ao criar categoria!" });
+  } catch (err) {
+    console.error("Erro ao criar categoria:", err.message);
+    res.status(500).json({ message: "Erro ao criar categoria!" });
   }
 };
 
@@ -42,9 +42,9 @@ const getCategories = async (req, res) => {
   try {
     const categories = await Category.find().sort({ createdAt: -1 });
     res.status(200).json({ data: categories });
-  } catch (error) {
-    console.error("Erro ao buscar categorias:", error.message);
-    res.status(500).json({ error: "Erro ao buscar categorias" });
+  } catch (err) {
+    console.error("Erro ao buscar categorias:", err.message);
+    res.status(500).json({ message: "Erro ao buscar categorias" });
   }
 };
 
@@ -53,12 +53,12 @@ const getCategoryById = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
     if (!category) {
-      return res.status(404).json({ error: "Categoria não encontrada!" });
+      return res.status(404).json({ message: "Categoria não encontrada!" });
     }
     res.status(200).json(category);
-  } catch (error) {
-    console.error("Erro ao buscar categoria:", error.message);
-    res.status(500).json({ error: "Erro ao buscar categoria!" });
+  } catch (err) {
+    console.error("Erro ao buscar categoria:", err.message);
+    res.status(500).json({ message: "Erro ao buscar categoria!" });
   }
 };
 
@@ -69,7 +69,7 @@ const updateCategory = async (req, res) => {
   if (!title) {
     return res
       .status(400)
-      .json({ error: "O título da categoria é obrigatório!" });
+      .json({ message: "O título da categoria é obrigatório!" });
   }
 
   try {
@@ -80,16 +80,16 @@ const updateCategory = async (req, res) => {
     );
 
     if (!updated) {
-      return res.status(404).json({ error: "Categoria não encontrada!" });
+      return res.status(404).json({ message: "Categoria não encontrada!" });
     }
 
     res.status(200).json({
       message: "Categoria atualizada com sucesso!",
       data: updated,
     });
-  } catch (error) {
-    console.error("Erro ao atualizar categoria:", error.message);
-    res.status(500).json({ error: "Erro ao atualizar categoria" });
+  } catch (err) {
+    console.error("Erro ao atualizar categoria:", err.message);
+    res.status(500).json({ message: "Erro ao atualizar categoria" });
   }
 };
 
@@ -98,13 +98,13 @@ const deleteCategory = async (req, res) => {
   try {
     const removed = await Category.findByIdAndDelete(req.params.id);
     if (!removed) {
-      return res.status(404).json({ error: "Categoria não encontrada!" });
+      return res.status(404).json({ message: "Categoria não encontrada!" });
     }
 
     res.status(200).json({ message: "Categoria removida com sucesso!" });
-  } catch (error) {
-    console.error("Erro ao remover categoria:", error.message);
-    res.status(500).json({ error: "Erro ao remover categoria!" });
+  } catch (err) {
+    console.error("Erro ao remover categoria:", err.message);
+    res.status(500).json({ message: "Erro ao remover categoria!" });
   }
 };
 

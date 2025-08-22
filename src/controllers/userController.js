@@ -19,7 +19,7 @@ const createUser = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
-      error: errors
+      message: errors
         .array()
         .map((e) => e.msg)
         .join(", "),
@@ -32,7 +32,7 @@ const createUser = async (req, res) => {
     // Evita duplicidade de email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: "E-mail já cadastrado!" });
+      return res.status(400).json({ message: "E-mail já cadastrado!" });
     }
 
     const image = req.file ? validateImage(req.file) : null;
@@ -52,10 +52,10 @@ const createUser = async (req, res) => {
     res
       .status(201)
       .json({ message: "Usuário criado com sucesso!", data: newUser });
-  } catch (error) {
+  } catch (err) {
     res
       .status(500)
-      .json({ error: error.message || "Erro interno ao criar usuário!" });
+      .json({ message: err.message || "Erro interno ao criar usuário!" });
   }
 };
 
@@ -66,8 +66,8 @@ const getUsers = async (req, res) => {
     res
       .status(200)
       .json({ message: "Usuários listados com sucesso", data: users });
-  } catch (error) {
-    res.status(500).json({ error: "Erro interno ao buscar usuários" });
+  } catch (err) {
+    res.status(500).json({ message: "Erro interno ao buscar usuários" });
   }
 };
 
@@ -75,11 +75,11 @@ const getUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado!" });
+    if (!user) return res.status(404).json({ message: "Usuário não encontrado!" });
 
     res.status(200).json({ message: "Usuário encontrado!", data: user });
-  } catch (error) {
-    res.status(500).json({ error: "Erro interno ao buscar usuário!" });
+  } catch (err) {
+    res.status(500).json({ message: "Erro interno ao buscar usuário!" });
   }
 };
 
@@ -91,7 +91,7 @@ const updateUser = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ error: "Usuário não encontrado" });
+      return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
     let image;
@@ -135,9 +135,9 @@ const updateUser = async (req, res) => {
       message: "Usuário atualizado com sucesso!",
       data: updated,
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
-      error: error.message || "Erro interno ao atualizar usuário!",
+      message: err.message || "Erro interno ao atualizar usuário!",
     });
   }
 };
@@ -146,13 +146,13 @@ const updateUserImage = async (req, res) => {
   try {
     // Verifica se veio arquivo na requisição
     if (!req.file) {
-      return res.status(400).json({ error: "Nenhuma imagem enviada" });
+      return res.status(400).json({ message: "Nenhuma imagem enviada" });
     }
 
     // Busca usuário pelo ID
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).json({ error: "Usuário não encontrado" });
+      return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
     // Valida a nova imagem
@@ -177,9 +177,9 @@ const updateUserImage = async (req, res) => {
       message: "Imagem do usuário atualizada com sucesso",
       data: { image: user.image },
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
-      error: error.message || "Erro interno ao atualizar imagem",
+      message: err.message || "Erro interno ao atualizar imagem",
     });
   }
 };
@@ -188,7 +188,7 @@ const updateUserImage = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+    if (!user) return res.status(404).json({ message: "Usuário não encontrado" });
 
     if (user.image) {
       const imagePath = path.join(
@@ -205,8 +205,8 @@ const deleteUser = async (req, res) => {
     await User.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: "Usuário removido com sucesso" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro interno ao remover usuário" });
+  } catch (err) {
+    res.status(500).json({ message: "Erro interno ao remover usuário" });
   }
 };
 
