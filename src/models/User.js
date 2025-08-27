@@ -30,9 +30,22 @@ const UserSchema = new mongoose.Schema(
       minlength: 6,
     },
     image: { type: String },
+    imagePublicId: { type: String },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
   },
   { timestamps: true }
 );
+
+// Remover a senha automaticamente do JSON
+UserSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
+};
 
 // Hash da senha antes de salvar
 UserSchema.pre("save", async function (next) {

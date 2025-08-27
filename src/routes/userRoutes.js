@@ -9,7 +9,7 @@ const {
 } = require("../controllers/userController");
 const { body } = require("express-validator");
 const protect = require("../middlewares/authMiddleware");
-const upload = require("../middlewares/uploadImage");
+const upload = require("../middlewares/uploadCloudinary");
 
 const router = express.Router();
 
@@ -17,7 +17,7 @@ const router = express.Router();
 router.use(protect);
 
 router.post(
-  "/", protect, 
+  "/",
   upload.single("image"),
   [
     body("firstName").notEmpty().withMessage("Nome obrigatório"),

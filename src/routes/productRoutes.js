@@ -10,7 +10,7 @@ const {
 } = require("../controllers/productController");
 const { body } = require("express-validator");
 const protect = require("../middlewares/authMiddleware");
-const upload = require("../middlewares/uploadImage");
+const upload = require("../middlewares/uploadCloudinary");
 
 const router = express.Router();
 

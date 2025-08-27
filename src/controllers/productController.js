@@ -1,14 +1,19 @@
 const Product = require("../models/Product");
 const Category = require("../models/Category");
 const { validationResult } = require("express-validator");
-const path = require("path");
 const fs = require("fs"); // Adicionado para exclusão de arquivos
+const { v2: cloudinary } = require("cloudinary");
 
 // Criar Produto
 const createProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ message: errors.array().map(e => e.msg).join(", ") });
+    return res.status(400).json({
+      message: errors
+        .array()
+        .map((e) => e.msg)
+        .join(", "),
+    });
   }
 
   const { title, subtitle, price, description, stock, categoryId } = req.body;
@@ -18,13 +23,17 @@ const createProduct = async (req, res) => {
     return res.status(400).json({ message: "O título é obrigatório!" });
   }
   if (!price || price <= 0) {
-    return res.status(400).json({ message: "O preço deve ser maior que zero!" });
+    return res
+      .status(400)
+      .json({ message: "O preço deve ser maior que zero!" });
   }
   if (!categoryId) {
     return res.status(400).json({ message: "A categoria é obrigatória!" });
   }
   if (stock && stock < 0) {
-    return res.status(400).json({ message: "O estoque não pode ser negativo!" });
+    return res
+      .status(400)
+      .json({ message: "O estoque não pode ser negativo!" });
   }
 
   try {
@@ -35,13 +44,18 @@ const createProduct = async (req, res) => {
     }
 
     // Validar imagem (se fornecida)
-    let image = null;
+    let imageUrl = null;
+    let imagePublicId = null;
+
     if (req.file) {
-      const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
-      if (!allowedTypes.includes(req.file.mimetype)) {
-        return res.status(400).json({ message: "Apenas imagens PNG, JPG ou JPEG são permitidas!" });
-      }
-      image = `/uploads/${req.file.filename}`;
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "products",
+      });
+      imageUrl = result.secure_url;
+      imagePublicId = result.public_id;
+
+      // remover arquivo temporário
+      fs.unlinkSync(req.file.path);
     }
 
     const product = await Product.create({
@@ -50,7 +64,8 @@ const createProduct = async (req, res) => {
       price: parseFloat(price),
       description: description?.trim(),
       stock: stock ? parseInt(stock) : 0,
-      image,
+      image: imageUrl,
+      imagePublicId,
       categoryId,
     });
 
@@ -83,7 +98,10 @@ const getProducts = async (req, res) => {
 // Buscar Produto por ID
 const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("categoryId", "title");
+    const product = await Product.findById(req.params.id).populate(
+      "categoryId",
+      "title"
+    );
     if (!product) {
       return res.status(404).json({ message: "Produto não encontrado" });
     }
@@ -111,10 +129,15 @@ const getProductsByCategory = async (req, res) => {
       return res.status(404).json({ message: "Categoria não encontrada!" });
     }
 
-    const products = await Product.find({ categoryId, active: true }).populate("categoryId", "title");
+    const products = await Product.find({ categoryId, active: true }).populate(
+      "categoryId",
+      "title"
+    );
 
     if (products.length === 0) {
-      return res.status(404).json({ message: "Nenhum produto encontrado para essa categoria!" });
+      return res
+        .status(404)
+        .json({ message: "Nenhum produto encontrado para essa categoria!" });
     }
 
     res.status(200).json({
@@ -123,7 +146,9 @@ const getProductsByCategory = async (req, res) => {
     });
   } catch (err) {
     console.error("Erro ao buscar produtos por categoria:", err.message);
-    res.status(500).json({ message: "Erro interno ao buscar produtos por categoria" });
+    res
+      .status(500)
+      .json({ message: "Erro interno ao buscar produtos por categoria" });
   }
 };
 
@@ -136,13 +161,17 @@ const updateProduct = async (req, res) => {
     return res.status(400).json({ message: "O título é obrigatório!" });
   }
   if (price && price <= 0) {
-    return res.status(400).json({ message: "O preço deve ser maior que zero!" });
+    return res
+      .status(400)
+      .json({ message: "O preço deve ser maior que zero!" });
   }
   if (categoryId && !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
     return res.status(400).json({ message: "ID de categoria inválido!" });
   }
   if (stock && stock < 0) {
-    return res.status(400).json({ message: "O estoque não pode ser negativo!" });
+    return res
+      .status(400)
+      .json({ message: "O estoque não pode ser negativo!" });
   }
 
   try {
@@ -159,23 +188,17 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Produto não encontrado!" });
     }
 
-    let image;
+    if (product.imagePublicId) {
+      await cloudinary.uploader.destroy(product.imagePublicId);
+    }
+
     if (req.file) {
-      const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
-      if (!allowedTypes.includes(req.file.mimetype)) {
-        return res.status(400).json({ message: "Apenas imagens PNG, JPG ou JPEG são permitidas!" });
-      }
-
-      // Excluir imagem anterior se existir
-      if (product.image) {
-        const oldImagePath = path.join(process.cwd(), product.image);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
-      }
-
-      // Definir nova imagem
-      image = `/uploads/${req.file.filename}`;
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "products",
+      });
+      product.image = result.secure_url;
+      product.imagePublicId = result.public_id;
+      fs.unlinkSync(req.file.path);
     }
 
     const updatedData = {
@@ -185,7 +208,8 @@ const updateProduct = async (req, res) => {
       description: description?.trim(),
       stock: stock ? parseInt(stock) : undefined,
       categoryId,
-      ...(image && { image }),
+      imagePublicId: product.imagePublicId,
+      image: product.image,
     };
 
     const updated = await Product.findByIdAndUpdate(
@@ -213,13 +237,8 @@ const deleteProduct = async (req, res) => {
     }
 
     // Excluir imagem, se existir
-    if (product.image) {
-      const imagePath = path.join(__dirname, "../uploads", product.image.split("/").pop());
-      fs.unlink(imagePath, (err) => {
-        if (err && err.code !== "ENOENT") {
-          console.error("Erro ao excluir imagem:", err.message);
-        }
-      });
+    if (product.imagePublicId) {
+      await cloudinary.uploader.destroy(product.imagePublicId);
     }
 
     await Product.findByIdAndDelete(req.params.id);
@@ -237,7 +256,9 @@ const filterProductsByDescription = async (req, res) => {
     const { q, categoryId } = req.query;
 
     if (!q || q.trim() === "") {
-      return res.status(400).json({ message: "Parâmetro de busca 'q' é obrigatório!" });
+      return res
+        .status(400)
+        .json({ message: "Parâmetro de busca 'q' é obrigatório!" });
     }
 
     const query = {};
@@ -250,9 +271,12 @@ const filterProductsByDescription = async (req, res) => {
     }
 
     // Divide a busca em palavras e cria um array de expressões regulares
-    const keywords = q.trim().split(/\s+/).map(word => ({
-      description: { $regex: word, $options: "i" },
-    }));
+    const keywords = q
+      .trim()
+      .split(/\s+/)
+      .map((word) => ({
+        description: { $regex: word, $options: "i" },
+      }));
 
     query.$or = keywords;
 

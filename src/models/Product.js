@@ -9,6 +9,7 @@ const ProductSchema = new mongoose.Schema(
     stock: { type: Number, default: 0 },
     active: { type: Boolean, default: true },
     image: { type: String }, // URL ou nome do arquivo
+    imagePublicId: { type: String },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",

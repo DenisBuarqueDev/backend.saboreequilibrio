@@ -1,21 +1,12 @@
 const User = require("../models/User");
 const { validationResult } = require("express-validator");
-const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
-
-// Função auxiliar para validar imagem
-const validateImage = (file) => {
-  if (!file) return null;
-  const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
-  if (!allowedTypes.includes(file.mimetype)) {
-    throw new Error("Apenas imagens PNG, JPG ou JPEG são permitidas");
-  }
-  return `/uploads/${file.filename}`;
-};
+const { v2: cloudinary } = require("cloudinary");
 
 // Criar Usuário
 const createUser = async (req, res) => {
+  // Validação dos campos
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -29,33 +20,45 @@ const createUser = async (req, res) => {
   const { firstName, lastName, phone, email, password } = req.body;
 
   try {
-    // Evita duplicidade de email
+    // Evita duplicidade de e-mail
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "E-mail já cadastrado!" });
     }
 
-    const image = req.file ? validateImage(req.file) : null;
-
     // Hash da senha
     const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
+    let imageUrl = null;
+    let imagePublicId = null;
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "users"
+      });
+      imageUrl = result.secure_url;
+      imagePublicId = result.public_id;
+
+      // remover arquivo temporário
+      fs.unlinkSync(req.file.path);
+    }
+
+    // Cria usuário
     const newUser = await User.create({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       phone: phone.trim(),
       email: email.trim(),
       password: hashedPassword,
-      image,
+      image: imageUrl,
+      imagePublicId,
     });
 
-    res
-      .status(201)
-      .json({ message: "Usuário criado com sucesso!", data: newUser });
+    return res.status(201).json(newUser);
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: err.message || "Erro interno ao criar usuário!" });
+    res.status(500).json({
+      message: err.message || "Erro interno ao criar usuário!",
+    });
   }
 };
 
@@ -75,7 +78,8 @@ const getUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "Usuário não encontrado!" });
+    if (!user)
+      return res.status(404).json({ message: "Usuário não encontrado!" });
 
     res.status(200).json({ message: "Usuário encontrado!", data: user });
   } catch (err) {
@@ -83,104 +87,79 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Atualizar Usuário
+// Atualizar dados + imagem
 const updateUser = async (req, res) => {
-  const { firstName, lastName, phone, email, password, imagem } = req.body;
+  const { firstName, lastName, phone } = req.body;
 
   try {
     const user = await User.findById(req.params.id);
+    if (!user)
+      return res.status(404).json({ message: "Usuário não encontrado!!" });
 
-    if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.phone = phone || user.phone;
+    
+
+    if (user.imagePublicId) {
+      await cloudinary.uploader.destroy(user.imagePublicId);
     }
 
-    let image;
     if (req.file) {
-      image = validateImage(req.file);
-
-      // Se existir imagem anterior, exclui do servidor
-      if (user.image) {
-        const fs = require("fs");
-        const path = require("path");
-
-        const oldImagePath = path.join(__dirname, "..", "uploads", user.image);
-
-        fs.unlink(oldImagePath, (err) => {
-          if (err && err.code !== "ENOENT") {
-            console.error("Erro ao excluir imagem antiga:", err);
-          }
-        });
-      }
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "users"
+      });
+      user.image = result.secure_url;
+      user.imagePublicId = result.public_id;
+      fs.unlinkSync(req.file.path);
     }
 
-    let updatedData = {
-      firstName: firstName?.trim(),
-      lastName: lastName?.trim(),
-      phone: phone?.trim(),
-      email: email?.trim(),
-      ...(image && { image }),
-    };
-
-    if (password?.trim()) {
-      updatedData.password = await bcrypt.hash(password.trim(), 10);
-    }
-
-    const updated = await User.findByIdAndUpdate(
-      req.params.id,
-      { $set: updatedData },
-      { new: true, runValidators: true }
-    );
+    await user.save();
 
     res.status(200).json({
-      message: "Usuário atualizado com sucesso!",
-      data: updated,
+      message: "Usuário atualizado com sucesso",
+      data: user.toObject(),
     });
   } catch (err) {
-    res.status(500).json({
-      message: err.message || "Erro interno ao atualizar usuário!",
-    });
+    res.status(500).json({ message: "Erro interno ao atualizar usuário!" });
   }
 };
 
+// Atualizar imagem do usuário
 const updateUserImage = async (req, res) => {
   try {
-    // Verifica se veio arquivo na requisição
-    if (!req.file) {
-      return res.status(400).json({ message: "Nenhuma imagem enviada" });
-    }
-
-    // Busca usuário pelo ID
     const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
+    if (!user)
+      return res.status(404).json({ message: "Usuário não encontrado!!" });
+
+    if (!req.file)
+      return res.status(400).json({ message: "Nenhuma imagem enviada" });
+
+    // Remove imagem antiga no Cloudinary
+    if (user.imagePublicId) {
+      await cloudinary.uploader.destroy(user.imagePublicId);
     }
 
-    // Valida a nova imagem
-    const image = validateImage(req.file);
-
-    // Se houver imagem anterior, exclui do servidor
-    if (user.image) {
-      const oldImagePath = path.join(__dirname, "..", "uploads", user.image);
-
-      fs.unlink(oldImagePath, (err) => {
-        if (err && err.code !== "ENOENT") {
-          console.error("Erro ao excluir imagem antiga:", err);
-        }
+    // Upload nova imagem
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "users"
       });
+      user.image = result.secure_url;
+      user.imagePublicId = result.public_id;
+      fs.unlinkSync(req.file.path);
     }
 
-    // Atualiza somente o campo "image"
-    user.image = image;
     await user.save();
 
     res.status(200).json({
       message: "Imagem do usuário atualizada com sucesso",
-      data: { image: user.image },
+      data: user.toObject(),
     });
   } catch (err) {
-    res.status(500).json({
-      message: err.message || "Erro interno ao atualizar imagem",
-    });
+    res
+      .status(500)
+      .json({ message: "Erro interno ao atualizar imagem do usuário!" });
   }
 };
 
@@ -188,25 +167,19 @@ const updateUserImage = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "Usuário não encontrado" });
+    if (!user)
+      return res.status(404).json({ message: "Usuário não encontrado!!" });
 
-    if (user.image) {
-      const imagePath = path.join(
-        __dirname,
-        "../uploads",
-        path.basename(user.image)
-      );
-      fs.unlink(imagePath, (err) => {
-        if (err && err.code !== "ENOENT")
-          console.error("Erro ao excluir imagem:", err.message);
-      });
+    // Exclui a imagem do Cloudinary (se existir)
+    if (user.imagePublicId) {
+      await cloudinary.uploader.destroy(user.imagePublicId);
     }
 
     await User.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: "Usuário removido com sucesso" });
   } catch (err) {
-    res.status(500).json({ message: "Erro interno ao remover usuário" });
+    res.status(500).json({ message: "Erro interno ao remover usuário!" });
   }
 };
 
