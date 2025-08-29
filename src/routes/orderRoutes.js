@@ -6,7 +6,9 @@ const {
   getOrderItems,
   updateOrderStatus,
   cancelOrder,
-  getOrdersByUserId,
+  getOrdersByUserId, 
+  countOrdersByStatus, 
+  getOrderById
 } = require('../controllers/orderController');
 const protect = require('../middlewares/authMiddleware');
 
@@ -21,5 +23,7 @@ router.get('/admin', getAllOrders); // futura proteção por perfil
 router.get('/:id/items', getOrderItems);
 router.put('/:id/status', updateOrderStatus);
 router.put('/:id/cancel', cancelOrder);
+router.get("/countstatus", countOrdersByStatus);
+router.get('/:id', getOrderById);
 
 module.exports = router;

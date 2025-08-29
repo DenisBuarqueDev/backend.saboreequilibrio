@@ -156,9 +156,18 @@ const getOrderItems = async (req, res) => {
   }
 };
 
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.find({ _id: req.params.id });
+    res.status(200).json(order);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar order!" });
+  }
+};
+
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 }).populate('userId', 'firstName lastName phone');;
+    const orders = await Order.find().sort({ createdAt: -1 }).populate('userId', 'firstName lastName phone');
     res.status(200).json(orders);
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar pedidos" });
@@ -194,6 +203,37 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+const countOrdersByStatus = async (req, res) => {
+  try {
+    const result = await Order.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          total: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // transformar em objeto legível
+    const counts = {
+      pendente: 0,
+      preparando: 0,
+      entrega: 0,
+      finalizado: 0,
+      cancelado: 0,
+    };
+
+    result.forEach((item) => {
+      counts[item._id] = item.total;
+    });
+
+    return res.status(200).json(counts);
+  } catch (error) {
+    console.error("Erro ao contar pedidos:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getUserOrders,
@@ -201,5 +241,7 @@ module.exports = {
   getOrderItems,
   updateOrderStatus,
   cancelOrder,
-  getOrdersByUserId,
+  getOrdersByUserId, 
+  countOrdersByStatus, 
+  getOrderById,
 };
