@@ -167,7 +167,7 @@ const getOrderById = async (req, res) => {
 
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 }).populate('userId', 'firstName lastName phone');
+    const orders = await Order.find().sort({ createdAt: -1 }).populate('userId', 'firstName lastName phone image');
     res.status(200).json(orders);
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar pedidos" });
