@@ -4,11 +4,23 @@ const cors = require("cors");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./src/config/db");
+const http = require("http");
+const { Server } = require("socket.io");
 
 dotenv.config();
 connectDB();
 
 const app = express();
+
+const server = http.createServer(app);
+
+// Configurar CORS para React
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // frontend React
+    methods: ["GET", "POST"]
+  }
+});
 
 app.use(cookieParser());
 
@@ -46,7 +58,19 @@ const productRoutes = require("./src/routes/productRoutes");
 app.use("/api/products", productRoutes);
 
 const orderRoutes = require("./src/routes/orderRoutes");
-app.use("/api/orders", orderRoutes);
+app.use("/api/orders", (req, res, next) => {
+  req.io = io;
+  next();
+}, orderRoutes);
+
+// Socket.io eventos básicos
+io.on("connection", (socket) => {
+  console.log("🟢 Cliente conectado ao WebSocket:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Cliente desconectado:", socket.id);
+  });
+});
 
 const likeRoutes = require("./src/routes/likeRoutes");
 app.use("/api/likes", likeRoutes);

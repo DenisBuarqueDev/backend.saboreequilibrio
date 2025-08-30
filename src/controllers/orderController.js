@@ -85,7 +85,11 @@ const createOrder = async (req, res) => {
     order.amount = totalOrder;
     await order.save();
 
+    // Emitir evento para todos os dashboards conectados
+    req.io.emit("newOrder", newOrder);
+
     return res.status(201).json({ order });
+
   } catch (error) {
     console.error("Erro ao criar pedido:", error);
     return res.status(500).json({
@@ -167,7 +171,9 @@ const getOrderById = async (req, res) => {
 
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 }).populate('userId', 'firstName lastName phone image');
+    const orders = await Order.find()
+      .sort({ createdAt: -1 })
+      .populate("userId", "firstName lastName phone image");
     res.status(200).json(orders);
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar pedidos" });
@@ -241,7 +247,7 @@ module.exports = {
   getOrderItems,
   updateOrderStatus,
   cancelOrder,
-  getOrdersByUserId, 
-  countOrdersByStatus, 
+  getOrdersByUserId,
+  countOrdersByStatus,
   getOrderById,
 };
