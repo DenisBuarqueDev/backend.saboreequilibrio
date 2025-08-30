@@ -17,8 +17,7 @@ const server = http.createServer(app);
 // Configurar CORS para React
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // frontend React
-    //origin: "https://saboreequilibrio.vercel.app", // frontend React
+    origin: ["http://localhost:5173","https://saboreequilibrio.vercel.app"], // frontend React
     methods: ["GET", "POST"]
   }
 });
