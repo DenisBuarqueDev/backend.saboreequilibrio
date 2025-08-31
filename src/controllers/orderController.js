@@ -84,9 +84,8 @@ const createOrder = async (req, res) => {
     order.items = enrichedItems;
     order.amount = totalOrder;
     await order.save();
-
     // Emitir evento para todos os dashboards conectados
-    req.io.emit("newOrder", newOrder);
+    req.io.emit("newOrder", order);
 
     return res.status(201).json({ order });
 

@@ -12,15 +12,6 @@ connectDB();
 
 const app = express();
 
-const server = http.createServer(app);
-
-// Configurar CORS para React
-const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:5173","https://saboreequilibrio.vercel.app"], // frontend React
-    methods: ["GET", "POST"]
-  }
-});
 
 app.use(cookieParser());
 
@@ -57,21 +48,6 @@ app.use("/api/categories", categoryRoutes);
 const productRoutes = require("./src/routes/productRoutes");
 app.use("/api/products", productRoutes);
 
-const orderRoutes = require("./src/routes/orderRoutes");
-app.use("/api/orders", (req, res, next) => {
-  req.io = io;
-  next();
-}, orderRoutes);
-
-// Socket.io eventos básicos
-io.on("connection", (socket) => {
-  console.log("🟢 Cliente conectado ao WebSocket:", socket.id);
-
-  socket.on("disconnect", () => {
-    console.log("🔴 Cliente desconectado:", socket.id);
-  });
-});
-
 const likeRoutes = require("./src/routes/likeRoutes");
 app.use("/api/likes", likeRoutes);
 
@@ -94,9 +70,37 @@ app.get("/", (req, res) => {
   res.send("API funcionando!");
 });
 
+
+const server = http.createServer(app);
+
+// Configurar CORS para React
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173","https://saboreequilibrio.vercel.app"], // frontend React
+    methods: ["GET", "POST"]
+  }
+});
+
+const orderRoutes = require("./src/routes/orderRoutes");
+app.use("/api/orders", (req, res, next) => {
+  req.io = io;
+  next();
+}, orderRoutes);
+
+// Socket.io eventos básicos
+io.on("connection", (socket) => {
+  console.log("🟢 Cliente conectado ao WebSocket:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Cliente desconectado:", socket.id);
+  });
+});
+
+
 // Porta
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+
+server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
