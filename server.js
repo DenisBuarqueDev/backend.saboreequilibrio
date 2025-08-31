@@ -70,7 +70,6 @@ app.get("/", (req, res) => {
   res.send("API funcionando!");
 });
 
-
 const server = http.createServer(app);
 
 // Configurar CORS para React

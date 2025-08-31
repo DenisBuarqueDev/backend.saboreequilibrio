@@ -188,6 +188,9 @@ const updateOrderStatus = async (req, res) => {
     order.status = status;
     await order.save();
 
+     // Notifica todos os clientes que o status mudou
+    req.io.emit("orderStatusUpdated", order);
+
     res.status(200).json({ message: "Status atualizado", order });
   } catch (err) {
     res.status(500).json({ error: "Erro ao atualizar status do pedido" });
