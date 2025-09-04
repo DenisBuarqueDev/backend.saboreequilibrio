@@ -2,6 +2,7 @@ const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
+const { countOrdersByStatus } = require("../utils/orderUtil.js");
 
 const createOrder = async (req, res) => {
   const { address, payment, items } = req.body;
@@ -84,8 +85,17 @@ const createOrder = async (req, res) => {
     order.items = enrichedItems;
     order.amount = totalOrder;
     await order.save();
+
+    // Atualiza contagem
+    const counts = await countOrdersByStatus();
+    req.io.emit("ordersCountUpdated", counts);
+
+    // Buscar novamente o pedido já populado
+    const populatedOrder = await Order.findById(order._id)
+      .populate("userId", "firstName lastName phone image");
+
     // Emitir evento para todos os dashboards conectados
-    req.io.emit("newOrder", order);
+    req.io.emit("newOrder", populatedOrder);
 
     return res.status(201).json({ order });
 
@@ -170,11 +180,18 @@ const getOrderById = async (req, res) => {
 
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find()
+    const { status } = req.query;
+
+    // monta filtro: se status existir, usa ele; se não, traz tudo
+    const filter = status ? { status } : {};
+
+    const orders = await Order.find(filter)
       .sort({ createdAt: -1 })
       .populate("userId", "firstName lastName phone image");
+
     res.status(200).json(orders);
   } catch (err) {
+    console.error("Erro ao buscar pedidos:", err);
     res.status(500).json({ error: "Erro ao buscar pedidos" });
   }
 };
@@ -187,6 +204,10 @@ const updateOrderStatus = async (req, res) => {
 
     order.status = status;
     await order.save();
+
+    // Atualiza contagem
+    const counts = await countOrdersByStatus();
+    req.io.emit("ordersCountUpdated", counts);
 
      // Notifica todos os clientes que o status mudou
     req.io.emit("orderStatusUpdated", order);
@@ -211,33 +232,11 @@ const cancelOrder = async (req, res) => {
   }
 };
 
-const countOrdersByStatus = async (req, res) => {
+const getOrdersCount = async (req, res) => {
   try {
-    const result = await Order.aggregate([
-      {
-        $group: {
-          _id: "$status",
-          total: { $sum: 1 },
-        },
-      },
-    ]);
-
-    // transformar em objeto legível
-    const counts = {
-      pendente: 0,
-      preparando: 0,
-      entrega: 0,
-      finalizado: 0,
-      cancelado: 0,
-    };
-
-    result.forEach((item) => {
-      counts[item._id] = item.total;
-    });
-
+    const counts = await countOrdersByStatus();
     return res.status(200).json(counts);
   } catch (error) {
-    console.error("Erro ao contar pedidos:", error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -250,6 +249,6 @@ module.exports = {
   updateOrderStatus,
   cancelOrder,
   getOrdersByUserId,
-  countOrdersByStatus,
+  getOrdersCount,
   getOrderById,
 };

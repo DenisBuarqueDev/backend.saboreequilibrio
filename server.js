@@ -17,6 +17,7 @@ app.use(cookieParser());
 
 const allowedOrigins = [
   "http://localhost:5173", // Dev
+  "http://localhost:3000", // Dev
   "https://saboreequilibrio.vercel.app", // Produção
   "https://dashboard-saboreequilibrio.vercel.app",
 ];
@@ -75,7 +76,7 @@ const server = http.createServer(app);
 // Configurar CORS para React
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173","https://saboreequilibrio.vercel.app"], // frontend React
+    origin: ["http://localhost:5173", "http://localhost:3000", "https://saboreequilibrio.vercel.app"], // frontend React
     methods: ["GET", "POST"]
   }
 });
