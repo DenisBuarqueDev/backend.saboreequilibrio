@@ -3,6 +3,7 @@ const OrderItem = require("../models/OrderItem");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
 const { countOrdersByStatus } = require("../utils/orderUtil.js");
+const { printOrder } = require("../utils/printer");
 
 const createOrder = async (req, res) => {
   const { address, payment, items } = req.body;
@@ -241,6 +242,27 @@ const getOrdersCount = async (req, res) => {
   }
 };
 
+const printOrderById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id)
+      .populate("userId", "firstName lastName phone");
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // chama a impressão
+    printOrder(order);
+
+    return res.status(200).json({ message: "Pedido enviado para impressão" });
+  } catch (err) {
+    console.error("Erro:", err);
+    res.status(500).json({ error: "Erro ao imprimir pedido" });
+  }
+};
+
+
 module.exports = {
   createOrder,
   getUserOrders,
@@ -251,4 +273,5 @@ module.exports = {
   getOrdersByUserId,
   getOrdersCount,
   getOrderById,
+  printOrderById
 };

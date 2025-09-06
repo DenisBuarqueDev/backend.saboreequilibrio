@@ -8,7 +8,8 @@ const {
   cancelOrder,
   getOrdersByUserId, 
   getOrdersCount, 
-  getOrderById
+  getOrderById,
+  printOrderById
 } = require('../controllers/orderController');
 const protect = require('../middlewares/authMiddleware');
 
@@ -25,5 +26,6 @@ router.put('/:id/status', updateOrderStatus);
 router.put('/:id/cancel', cancelOrder);
 router.get("/countstatus", getOrdersCount);
 router.get('/:id', getOrderById);
+router.get('/print/:id', printOrderById);
 
 module.exports = router;
