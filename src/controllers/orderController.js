@@ -92,14 +92,15 @@ const createOrder = async (req, res) => {
     req.io.emit("ordersCountUpdated", counts);
 
     // Buscar novamente o pedido já populado
-    const populatedOrder = await Order.findById(order._id)
-      .populate("userId", "firstName lastName phone image");
+    const populatedOrder = await Order.findById(order._id).populate(
+      "userId",
+      "firstName lastName phone image"
+    );
 
     // Emitir evento para todos os dashboards conectados
     req.io.emit("newOrder", populatedOrder);
 
     return res.status(201).json({ order });
-
   } catch (error) {
     console.error("Erro ao criar pedido:", error);
     return res.status(500).json({
@@ -210,7 +211,7 @@ const updateOrderStatus = async (req, res) => {
     const counts = await countOrdersByStatus();
     req.io.emit("ordersCountUpdated", counts);
 
-     // Notifica todos os clientes que o status mudou
+    // Notifica todos os clientes que o status mudou
     req.io.emit("orderStatusUpdated", order);
 
     res.status(200).json({ message: "Status atualizado", order });
@@ -245,23 +246,23 @@ const getOrdersCount = async (req, res) => {
 const printOrderById = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await Order.findById(id)
-      .populate("userId", "firstName lastName phone");
+    const order = await Order.findById(id).populate(
+      "userId",
+      "firstName lastName phone"
+    );
 
     if (!order) {
       return res.status(404).json({ error: "Pedido não encontrado" });
     }
 
-    // chama a impressão
-    printOrder(order);
+    await printOrder(order);
 
-    return res.status(200).json({ message: "Pedido enviado para impressão" });
-  } catch (err) {
-    console.error("Erro:", err);
+    res.json({ message: "Pedido enviado para impressão" });
+  } catch (error) {
+    console.error("Erro ao imprimir:", error);
     res.status(500).json({ error: "Erro ao imprimir pedido" });
   }
 };
-
 
 module.exports = {
   createOrder,
@@ -273,5 +274,5 @@ module.exports = {
   getOrdersByUserId,
   getOrdersCount,
   getOrderById,
-  printOrderById
+  printOrderById,
 };
