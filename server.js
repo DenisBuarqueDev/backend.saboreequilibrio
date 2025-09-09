@@ -61,6 +61,9 @@ app.use("/api/addresses", addressRoutes);
 const webhookRoutes = require("./src/routes/webhook");
 app.use("/api/webhook", webhookRoutes);
 
+const nutritionRecommendation = require("./src/routes/nutritionRoutes");
+app.use("/api/nutrition", nutritionRecommendation);
+
 const mercadoPagoRoutes = require("./src/routes/mercadoPago");
 app.use("/api/mercado-pago", mercadoPagoRoutes);
 
