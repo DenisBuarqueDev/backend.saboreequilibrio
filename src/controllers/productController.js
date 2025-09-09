@@ -84,7 +84,7 @@ const getProducts = async (req, res) => {
   try {
     const products = await Product.find()
       .populate("categoryId", "title")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: 1 });
     res.status(200).json({
       message: "Produtos listados com sucesso!",
       data: products,
