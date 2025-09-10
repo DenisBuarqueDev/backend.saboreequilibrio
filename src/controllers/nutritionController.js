@@ -29,7 +29,8 @@ const getNutritionRecommendation = async (req, res) => {
       ${saladList}
 
       Escolha a melhor salada para esse usuário, levando em conta os objetivos e restrições.
-      Explique brevemente sua escolha.
+      Explique brevemente sua escolha em um texto com no maximo 400 palavras.
+      Não adicione caracteres especiais na resposta com (*).
     `;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
