@@ -31,6 +31,7 @@ const OrderSchema = new mongoose.Schema(
       {
         productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
         title: { type: String },
+        description: { type: String },
         price: { type: Number },
         subtotal: { type: Number },
         qtd: Number,

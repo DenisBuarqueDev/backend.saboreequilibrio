@@ -68,7 +68,7 @@ async function printOrder(order) {
         rowStyles: { border: false },
         columnStyles: [170, 80],
         data: [
-          [`${item.qtd}x ${item.title}`, `R$ ${item.subtotal.toFixed(2)}`],
+          [`${item.qtd}x ${item.title}\n${item.description}`, `R$ ${item.subtotal.toFixed(2)}`],
         ],
       });
     });
