@@ -12,7 +12,6 @@ connectDB();
 
 const app = express();
 
-
 app.use(cookieParser());
 
 const allowedOrigins = [
@@ -79,30 +78,52 @@ const server = http.createServer(app);
 // Configurar CORS para React
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:3000", "https://saboreequilibrio.vercel.app"], // frontend React
-    methods: ["GET", "POST"]
-  }
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://saboreequilibrio.vercel.app",
+    ], // frontend React
+    methods: ["GET", "POST"],
+  },
 });
 
+const messageRoutes = require("./src/routes/messageRoutes");
+app.use(
+  "/api/chat",
+  (req, res, next) => {
+    req.io = io;
+    next();
+  },
+  messageRoutes
+);
+
 const orderRoutes = require("./src/routes/orderRoutes");
-app.use("/api/orders", (req, res, next) => {
-  req.io = io;
-  next();
-}, orderRoutes);
+app.use(
+  "/api/orders",
+  (req, res, next) => {
+    req.io = io;
+    next();
+  },
+  orderRoutes
+);
 
 // Socket.io eventos básicos
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado ao WebSocket:", socket.id);
+
+  // Usuário entra em uma "sala" do pedido
+  socket.on("joinOrder", (orderId) => {
+    socket.join(orderId);
+    console.log(`Usuário entrou no chat do pedido ${orderId}`);
+  });
 
   socket.on("disconnect", () => {
     console.log("🔴 Cliente desconectado:", socket.id);
   });
 });
 
-
 // Porta
 const PORT = process.env.PORT || 5000;
-
 
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);

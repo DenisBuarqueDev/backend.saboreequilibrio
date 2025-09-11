@@ -66,9 +66,16 @@ async function printOrder(order) {
     order.items.forEach((item) => {
       doc.table({
         rowStyles: { border: false },
-        columnStyles: [170, 80],
+        columnStyles: [
+          { width: 170, fontSize: 10 }, // aplica no texto da coluna 1
+          { width: 80, fontSize: 10 }, // aplica no texto da coluna 2
+        ],
         data: [
-          [`${item.qtd}x ${item.title}\n${item.description}`, `R$ ${item.subtotal.toFixed(2)}`],
+          [
+            { text: `${item.qtd}x ${item.title}`, fontSize: 10 },
+            { text: `R$ ${item.subtotal.toFixed(2)}`, fontSize: 10 },
+          ],
+          [{ colSpan: 2, text: `${item.description}`, fontSize: 8 }, ""],
         ],
       });
     });
@@ -82,7 +89,9 @@ async function printOrder(order) {
     doc.moveDown();
 
     doc.fontSize(8).text("Obrigado pela preferência!", { align: "center" });
-    doc.fontSize(8).text("https://saboreequilibrio.vercel.app", { align: "center" });
+    doc
+      .fontSize(8)
+      .text("https://saboreequilibrio.vercel.app", { align: "center" });
 
     doc.end();
 

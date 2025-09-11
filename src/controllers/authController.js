@@ -78,7 +78,7 @@ const login = async (req, res) => {
     });
 
     res.status(200).json({
-      message: "Conectado ao Dashboard!",
+      message: "Usuário Conectado!",
       user: {
         id: data._id,
         name: data.firstName,
