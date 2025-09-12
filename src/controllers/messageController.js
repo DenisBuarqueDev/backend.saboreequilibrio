@@ -36,11 +36,29 @@ const createMessage = async (req, res) => {
       sender,
       userId,
     });
-    const populatedMessage = await message.populate("userId", "firstName lastName image");
+    const populatedMessage = await message.populate(
+      "userId",
+      "firstName lastName image"
+    );
 
     // emite para a sala correta via socket.io (se estiver configurado)
     if (req.io) {
       req.io.to(orderId).emit("newMessage", populatedMessage);
+    }
+
+    // 2) avisos direcionados
+    if (sender === "user") {
+      // avisa o admin (global)
+      req.io.emit("notifyAdmin", {
+        orderId: String(orderId),
+        message: populatedMessage,
+      });
+    } else if (sender === "admin") {
+      // avisa o usuário — envia para a sala do pedido (usuário normalmente está nessa sala)
+       req.io.emit("notifyUser", {
+        orderId: String(orderId),
+        message: populatedMessage,
+      });
     }
 
     return res.status(201).json({
@@ -75,9 +93,8 @@ const countMessagesByOrder = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getMessagesByOrder,
-  createMessage, 
-  countMessagesByOrder
+  createMessage,
+  countMessagesByOrder,
 };

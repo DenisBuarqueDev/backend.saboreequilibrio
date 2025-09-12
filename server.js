@@ -111,10 +111,16 @@ app.use(
 io.on("connection", (socket) => {
   console.log("🟢 Cliente conectado ao WebSocket:", socket.id);
 
-  // Usuário entra em uma "sala" do pedido
   socket.on("joinOrder", (orderId) => {
-    socket.join(orderId);
-    console.log(`Usuário entrou no chat do pedido ${orderId}`);
+    const room = String(orderId);
+    socket.join(room);
+    console.log(`Socket ${socket.id} entrou na sala order:${room}`);
+  });
+
+  socket.on("leaveOrder", (orderId) => {
+    const room = String(orderId);
+    socket.leave(room);
+    console.log(`Socket ${socket.id} saiu da sala order:${room}`);
   });
 
   socket.on("disconnect", () => {
